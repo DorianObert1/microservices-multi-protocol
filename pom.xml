@@ -21,6 +21,7 @@
         <module>user-service</module>
         <module>product-service</module>
         <module>order-service</module>
+        <module>payment-service</module>
         <module>graphql-bff</module>
         <module>api-gateway</module>
     </modules>

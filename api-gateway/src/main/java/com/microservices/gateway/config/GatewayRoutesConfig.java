@@ -81,4 +81,17 @@ public class GatewayRoutesConfig {
                        HandlerFunctions.http("http://localhost:8084"))
                 .build();
     }
+
+    /**
+     * Route vers PAYMENT-SERVICE
+     */
+    @Bean
+    public RouterFunction<ServerResponse> paymentServiceRoute() {
+        return GatewayRouterFunctions.route("payment-service")
+                .route(RequestPredicates.path("/api/payments/**"),
+                       HandlerFunctions.http("http://localhost:8085"))
+                .before(addRequestHeader("X-Gateway", "api-gateway"))
+                .after(addResponseHeader("X-Response-Source", "payment-service"))
+                .build();
+    }
 }

@@ -5,3 +5,5 @@
 /order-service/target/
 /product-service/target/
 /user-service/target/
+/.idea/
+/payment-service/target/
