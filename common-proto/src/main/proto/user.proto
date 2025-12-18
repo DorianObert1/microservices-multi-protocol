@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.microservices.grpc.user";
+option java_outer_classname = "UserProto";
+
+package user;
+
+// ============================================
+// USER SERVICE - gRPC Definitions
+// ============================================
+
+message User {
+    int64 id = 1;
+    string username = 2;
+    string email = 3;
+    string first_name = 4;
+    string last_name = 5;
+    bool active = 6;
+    string created_at = 7;
+}
+
+message GetUserRequest {
+    int64 id = 1;
+}
+
+message GetUserByUsernameRequest {
+    string username = 1;
+}
+
+message GetAllUsersRequest {
+    int32 page = 1;
+    int32 size = 2;
+}
+
+message CreateUserRequest {
+    string username = 1;
+    string email = 2;
+    string first_name = 3;
+    string last_name = 4;
+    string password = 5;
+}
+
+message UpdateUserRequest {
+    int64 id = 1;
+    string email = 2;
+    string first_name = 3;
+    string last_name = 4;
+}
+
+message DeleteUserRequest {
+    int64 id = 1;
+}
+
+message UserResponse {
+    User user = 1;
+}
+
+message UsersResponse {
+    repeated User users = 1;
+    int32 total = 2;
+}
+
+message DeleteResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+service UserService {
+    rpc GetUser(GetUserRequest) returns (UserResponse);
+    rpc GetUserByUsername(GetUserByUsernameRequest) returns (UserResponse);
+    rpc GetAllUsers(GetAllUsersRequest) returns (UsersResponse);
+    rpc CreateUser(CreateUserRequest) returns (UserResponse);
+    rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteResponse);
+}

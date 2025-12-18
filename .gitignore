@@ -1,0 +1,7 @@
+# Project exclude paths
+/api-gateway/target/
+/common-proto/target/
+/graphql-bff/target/
+/order-service/target/
+/product-service/target/
+/user-service/target/

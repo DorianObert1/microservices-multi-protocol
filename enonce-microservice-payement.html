@@ -1,0 +1,329 @@
+
+		<head>
+			<style type="text/css" media="screen">
+				body,html{font-family:var(--markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif);font-size:var(--markdown-font-size,14px);padding:0 26px;line-height:var(--markdown-line-height,22px);word-wrap:break-word}body{padding-top:1em}h1,h2,h3,h4,h5,h6,ol,p,pre,ul{margin-top:0}h2,h3,h4,h5,h6{font-weight:400;margin-bottom:.2em}img{max-width:100%;max-height:100%}a{text-decoration:none}a:hover{text-decoration:underline}a:focus,input:focus,select:focus,textarea:focus{outline:1px solid -webkit-focus-ring-color;outline-offset:-1px}p{margin-bottom:.7em}ol,ul{margin-bottom:.7em}hr{border:0;height:2px;border-bottom:2px solid}h1{padding-bottom:.3em;line-height:1.2;border-bottom-width:1px;border-bottom-style:solid;font-weight:400}table{border-collapse:collapse}th{text-align:left;border-bottom:1px solid}td,th{padding:5px 10px}table>tbody>tr+tr>td{border-top:1px solid}blockquote{margin:0 7px 0 5px;padding:0 16px 0 10px;border-left-width:5px;border-left-style:solid}code{font-family:var(--vscode-editor-font-family, "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace);font-size:1em;line-height:1.357em}body.wordWrap pre{white-space:pre-wrap}pre.hljs code>div,pre:not(.hljs){padding:16px;border-radius:3px;overflow:auto}pre code{color:var(--vscode-editor-foreground);tab-size:4}
+			</style>
+		</head>
+		<body>
+			<h1 id="tp--création-du-microservice-payment-service">TP : Création du Microservice Payment-Service</h1>
+<h2 id="contexte">Contexte</h2>
+<p>Vous travaillez sur une architecture microservices e-commerce composée de plusieurs services :</p>
+<ul>
+<li><strong>user-service</strong> : Gestion des utilisateurs (port 8081/9091)</li>
+<li><strong>product-service</strong> : Gestion des produits (port 8082/9092)</li>
+<li><strong>order-service</strong> : Gestion des commandes (port 8083/9093)</li>
+<li><strong>graphql-bff</strong> : Backend For Frontend GraphQL (port 8084)</li>
+<li><strong>api-gateway</strong> : Point d&#39;entrée unique (port 8080)</li>
+</ul>
+<p>Votre mission est de créer un nouveau microservice <strong>payment-service</strong> pour gérer les paiements des commandes.</p>
+<hr>
+<h2 id="objectifs-pédagogiques">Objectifs pédagogiques</h2>
+<ul>
+<li>Comprendre l&#39;architecture multi-modules Maven</li>
+<li>Implémenter un microservice Spring Boot avec REST et gRPC</li>
+<li>Définir des contrats d&#39;API avec Protocol Buffers</li>
+<li>Intégrer un nouveau service dans une architecture existante</li>
+<li>Communiquer entre microservices via gRPC</li>
+</ul>
+<hr>
+<h2 id="spécifications-fonctionnelles">Spécifications fonctionnelles</h2>
+<h3 id="entité-payment">Entité Payment</h3>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>Long</td>
+<td>Identifiant unique (auto-généré)</td>
+</tr>
+<tr>
+<td>orderId</td>
+<td>Long</td>
+<td>Référence à la commande</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>Double</td>
+<td>Montant du paiement</td>
+</tr>
+<tr>
+<td>currency</td>
+<td>String</td>
+<td>Devise (EUR, USD, etc.)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>Enum</td>
+<td>PENDING, COMPLETED, FAILED, REFUNDED</td>
+</tr>
+<tr>
+<td>paymentMethod</td>
+<td>String</td>
+<td>CARD, PAYPAL, BANK_TRANSFER</td>
+</tr>
+<tr>
+<td>transactionId</td>
+<td>String</td>
+<td>Référence externe de transaction</td>
+</tr>
+<tr>
+<td>createdAt</td>
+<td>LocalDateTime</td>
+<td>Date de création</td>
+</tr>
+<tr>
+<td>updatedAt</td>
+<td>LocalDateTime</td>
+<td>Date de mise à jour</td>
+</tr>
+</tbody></table>
+<h3 id="statuts-de-paiement">Statuts de paiement</h3>
+<pre><code>PENDING → COMPLETED
+PENDING → FAILED
+COMPLETED → REFUNDED
+</code></pre>
+<hr>
+<h2 id="spécifications-techniques">Spécifications techniques</h2>
+<h3 id="configuration">Configuration</h3>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Port REST</td>
+<td>8085</td>
+</tr>
+<tr>
+<td>Port gRPC</td>
+<td>9095</td>
+</tr>
+<tr>
+<td>Base de données</td>
+<td>H2 (in-memory)</td>
+</tr>
+<tr>
+<td>Nom de l&#39;application</td>
+<td>payment-service</td>
+</tr>
+</tbody></table>
+<h3 id="endpoints-rest-à-implémenter">Endpoints REST à implémenter</h3>
+<table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td>/api/payments</td>
+<td>Liste tous les paiements</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/payments/{id}</td>
+<td>Récupère un paiement par ID</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/payments/order/{orderId}</td>
+<td>Récupère les paiements d&#39;une commande</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/payments/status/{status}</td>
+<td>Récupère les paiements par statut</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/payments/process</td>
+<td>Traite un nouveau paiement</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td>/api/payments/{id}/status</td>
+<td>Met à jour le statut</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/payments/{id}/refund</td>
+<td>Rembourse un paiement</td>
+</tr>
+</tbody></table>
+<h3 id="services-grpc-à-implémenter">Services gRPC à implémenter</h3>
+<pre><code class="language-protobuf">service PaymentService {
+    rpc ProcessPayment(ProcessPaymentRequest) returns (PaymentResponse);
+    rpc GetPayment(GetPaymentRequest) returns (PaymentResponse);
+    rpc GetPaymentsByOrder(GetPaymentsByOrderRequest) returns (PaymentsResponse);
+    rpc UpdatePaymentStatus(UpdatePaymentStatusRequest) returns (PaymentResponse);
+    rpc RefundPayment(RefundPaymentRequest) returns (PaymentResponse);
+}
+</code></pre>
+<hr>
+<h2 id="travail-à-réaliser">Travail à réaliser</h2>
+<h3 id="étape-1--structure-du-projet-2-points">Étape 1 : Structure du projet (2 points)</h3>
+<ol>
+<li>Créer le dossier <code>payment-service</code> avec la structure Maven standard</li>
+<li>Créer le fichier <code>pom.xml</code> du module</li>
+<li>Ajouter le module dans le <code>pom.xml</code> parent</li>
+</ol>
+<p><strong>Structure attendue :</strong></p>
+<pre><code>payment-service/
+├── pom.xml
+└── src/main/
+    ├── java/com/microservices/payment/
+    │   ├── PaymentServiceApplication.java
+    │   ├── model/
+    │   ├── dto/
+    │   ├── repository/
+    │   ├── service/
+    │   ├── controller/
+    │   ├── grpc/
+    │   └── exception/
+    └── resources/
+        ├── application.properties
+        └── data.sql
+</code></pre>
+<h3 id="étape-2--définition-protobuf">Étape 2 : Définition Protobuf</h3>
+<h3 id="étape-3--modèle-et-repository">Étape 3 : Modèle et Repository</h3>
+<h3 id="étape-4--dtos">Étape 4 : DTOs</h3>
+<h3 id="étape-5--service-métier">Étape 5 : Service métier</h3>
+<h3 id="étape-6--contrôleur-rest">Étape 6 : Contrôleur REST</h3>
+<h3 id="étape-7--service-grpc">Étape 7 : Service gRPC</h3>
+<h3 id="étape-8--client-grpc-vers-order-service">Étape 8 : Client gRPC vers Order-Service</h3>
+<h3 id="étape-9--intégration-gateway">Étape 9 : Intégration Gateway</h3>
+<h3 id="étape-10--intégration-graphql">Étape 10 : Intégration GraphQL</h3>
+<hr>
+<h2 id="données-de-test-datasql">Données de test (data.sql)</h2>
+<pre><code class="language-sql">INSERT INTO payments (order_id, amount, currency, status, payment_method, transaction_id, created_at, updated_at) 
+VALUES (1, 2689.97, &#39;EUR&#39;, &#39;COMPLETED&#39;, &#39;CARD&#39;, &#39;TXN-001-ABC123&#39;, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO payments (order_id, amount, currency, status, payment_method, transaction_id, created_at, updated_at) 
+VALUES (2, 49.99, &#39;EUR&#39;, &#39;PENDING&#39;, &#39;PAYPAL&#39;, &#39;TXN-002-DEF456&#39;, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+</code></pre>
+<hr>
+<h2 id="tests-à-effectuer">Tests à effectuer</h2>
+<h3 id="tests-rest-via-postman-ou-curl">Tests REST (via Postman ou curl)</h3>
+<pre><code class="language-bash"># Liste des paiements
+GET http://localhost:8080/api/payments
+
+# Paiement par ID
+GET http://localhost:8080/api/payments/1
+
+# Paiements d&#39;une commande
+GET http://localhost:8080/api/payments/order/1
+
+# Traiter un paiement
+POST http://localhost:8080/api/payments/process
+Content-Type: application/json
+{
+    &quot;orderId&quot;: 1,
+    &quot;amount&quot;: 299.99,
+    &quot;currency&quot;: &quot;EUR&quot;,
+    &quot;paymentMethod&quot;: &quot;CARD&quot;
+}
+
+# Mettre à jour le statut
+PATCH http://localhost:8080/api/payments/1/status?status=COMPLETED
+
+# Rembourser
+POST http://localhost:8080/api/payments/1/refund
+</code></pre>
+<hr>
+<h2 id="barème-de-notation">Barème de notation</h2>
+<table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Points</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Structure du projet</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Définition Protobuf</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Modèle et Repository</td>
+<td>2</td>
+</tr>
+<tr>
+<td>DTOs</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Service métier</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Contrôleur REST</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Service gRPC</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Client gRPC</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Intégration Gateway</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Intégration GraphQL</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>20</strong></td>
+</tr>
+</tbody></table>
+<h3 id="bonus">Bonus</h3>
+<ul>
+<li>(+1) Validation des entrées avec annotations Jakarta Validation</li>
+<li>(+1) Gestion des exceptions personnalisées avec codes d&#39;erreur</li>
+<li>(+1) Tests unitaires du service métier</li>
+<li>(+1) Documentation Swagger/OpenAPI</li>
+</ul>
+<hr>
+<h2 id="conseils">Conseils</h2>
+<ol>
+<li>Commencez par le fichier proto et compilez-le</li>
+<li>Testez chaque couche indépendamment</li>
+<li>Utilisez les logs pour déboguer les appels gRPC</li>
+<li>Vérifiez l&#39;ordre de démarrage des services (order-service avant payment-service)</li>
+<li>Consultez les services existants comme référence</li>
+</ol>
+<hr>
+<h2 id="ressources">Ressources</h2>
+<ul>
+<li>Documentation Spring Boot : <a href="https://docs.spring.io/spring-boot/">https://docs.spring.io/spring-boot/</a></li>
+<li>Documentation gRPC-Spring : <a href="https://yidongnan.github.io/grpc-spring-boot-starter/">https://yidongnan.github.io/grpc-spring-boot-starter/</a></li>
+<li>Protocol Buffers : <a href="https://protobuf.dev/">https://protobuf.dev/</a></li>
+<li>Spring GraphQL : <a href="https://docs.spring.io/spring-graphql/">https://docs.spring.io/spring-graphql/</a></li>
+</ul>
+<hr>
+<h2 id="livrables">Livrables</h2>
+<ol>
+<li>Code source du payment-service</li>
+<li>Fichier payment.proto</li>
+<li>Modifications des fichiers existants (gateway, graphql-bff, pom parent)</li>
+<li>Capture d&#39;écran des tests Postman réussis</li>
+<li>(Bonus) Collection Postman exportée</li>
+</ol>
+
+		</body>
